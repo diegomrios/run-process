@@ -1,0 +1,52 @@
+from pynput.mouse import Listener
+from pynput import keyboard
+import time
+
+# Variáveis para controle
+clicks = []
+start_time = None
+stop_signal = False
+
+# Função para registrar cliques
+def on_click(x, y, button, pressed):
+   global clicks
+   if pressed: # Registra apenas o pressionamento do botão
+        timestamp = time.time() - start_time
+       clicks.append(timestamp)
+        print(f"Clique registrado em ({x}, {y}) - Tempo: {timestamp:.2f} segundos")
+
+# Função para capturar o comando de parada
+def on_press(key):
+   global stop_signal
+   try:
+       if key == keyboard.Key.ctrl_r: # Pressionar Ctrl+U para parar
+           stop_signal = True
+           return False # Finaliza o listener do teclado
+   except Exception as e:
+       print(f"Erro no teclado: {e}")
+
+# Início do script
+print("Iniciando monitoramento de cliques...")
+print("Pressione Ctrl (direito) para parar e calcular o total.")
+start_time = time.time()
+
+# Inicia o listener do mouse
+mouse_listener = Listener(on_click=on_click)
+mouse_listener.start()
+
+# Inicia o listener do teclado
+with keyboard.Listener(on_press=on_press) as keyboard_listener:
+   keyboard_listener.join()
+
+# Finalizando o monitoramento
+mouse_listener.stop()
+end_time = time.time()
+total_time = end_time - start_time
+
+# Exibindo resultados
+print("\nMonitoramento finalizado.")
+print(f"Total de cliques: {len(clicks)}")
+print(f"Tempo total: {total_time:.2f} segundos")
+print("Tempos individuais de cada clique:")
+for i, t in enumerate(clicks, start=1):
+    print(f"Clique {i}: {t:.2f} segundos")
